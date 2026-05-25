@@ -43,8 +43,23 @@ jobs:
         with:
           xcode-version: latest-stable
 
-      - name: Build Release
-        run: swift build -c release
+      - name: Build arm64
+        run: swift build -c release --arch arm64
+
+      - name: Save arm64 binary
+        run: cp .build/arm64-apple-macosx/release/swol swol-arm64
+
+      - name: Build x86_64
+        run: swift build -c release --arch x86_64
+
+      - name: Save x86_64 binary
+        run: cp .build/x86_64-apple-macosx/release/swol swol-x86_64
+
+      - name: Create Universal Binary
+        run: lipo -create -output swol swol-arm64 swol-x86_64
+
+      - name: Verify Universal Binary
+        run: lipo -info swol
 
       - name: Sign Binary
         run: |
@@ -52,16 +67,15 @@ jobs:
             --timestamp \
             --options runtime \
             --sign "Developer ID Application: Redseven AB (4MW6K9N3NR)" \
-            .build/release/swol
+            swol
 
       - name: Verify Signature
-        run: |
-          codesign -dv --verbose=4 .build/release/swol
+        run: codesign -dv --verbose=4 swol
 
       - name: Prepare Binary
         run: |
           mkdir -p dist
-          cp .build/release/swol dist/
+          cp swol dist/
 
       - name: Zip Binary
         run: |
