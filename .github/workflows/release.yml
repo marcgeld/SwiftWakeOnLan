@@ -18,6 +18,26 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Import Code Signing Certificate
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+        run: |
+          echo "$BUILD_CERTIFICATE_BASE64" | base64 --decode > certificate.p12
+          security create-keychain -p actions build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p actions build.keychain
+          security import certificate.p12 \
+            -k build.keychain \
+            -P "$P12_PASSWORD" \
+            -T /usr/bin/codesign
+
+          security set-key-partition-list \
+            -S apple-tool:,apple: \
+            -s \
+            -k actions \
+            build.keychain
+
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
@@ -26,15 +46,39 @@ jobs:
       - name: Build Release
         run: swift build -c release
 
+      - name: Sign Binary
+        run: |
+          codesign --force \
+            --timestamp \
+            --options runtime \
+            --sign "Developer ID Application: Redseven AB (4MW6K9N3NR)" \
+            .build/release/swol
+
+      - name: Verify Signature
+        run: |
+          codesign -dv --verbose=4 .build/release/swol
+
       - name: Prepare Binary
         run: |
-          mkdir dist
+          mkdir -p dist
           cp .build/release/swol dist/
 
       - name: Zip Binary
         run: |
           cd dist
           zip -r swol-macos.zip swol
+
+      - name: Notarize Binary
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+        run: |
+          xcrun notarytool submit dist/swol-macos.zip \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_PASSWORD" \
+            --wait
 
       - name: Create Release
         uses: softprops/action-gh-release@v3
