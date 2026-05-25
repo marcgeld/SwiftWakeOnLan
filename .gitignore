@@ -60,3 +60,14 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
+
+.build/
+.DS_Store
+.swiftpm/
+Package.resolved
+
+*.p12
+*.key
+*.csr
+*.cer
+*.pem
