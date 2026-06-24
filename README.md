@@ -27,6 +27,15 @@ The tool supports:
 - macOS
 - Swift 6+
 
+## Install
+
+The easiest way to install a prebuilt version of AskAFM is with Homebrew:
+
+```bash
+brew tap marcgeld/homebrew-tap
+brew install swol
+```
+
 ## Download
 
 Prebuilt binaries are available from the GitHub Releases page.
