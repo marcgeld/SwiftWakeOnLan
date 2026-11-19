@@ -24,12 +24,13 @@ The tool supports:
 
 ## Requirements
 
-- macOS
-- Swift 6+
+- macOS 26 or later
+- Swift 6.4.2 or later
+- Xcode with the macOS 26 SDK or later (Xcode 27.2 includes Swift 6.4.2)
 
 ## Install
 
-The easiest way to install a prebuilt version of AskAFM is with Homebrew:
+The easiest way to install a prebuilt version of SwiftWakeOnLan is with Homebrew:
 
 ```bash
 brew tap marcgeld/homebrew-tap
@@ -41,6 +42,13 @@ brew install swol
 Prebuilt binaries are available from the GitHub Releases page.
 
 ## Build
+
+From the repository root, verify the toolchain and run the tests:
+
+```bash
+swift --version
+swift test
+```
 
 Build a debug version:
 
@@ -59,6 +67,19 @@ The release binary will be available at:
 ```text
 .build/release/swol
 ```
+
+CI builds and tests pull requests and pushes using Swift 6.4.2 on macOS 26.
+It also checks release builds for both Apple Silicon and Intel.
+CI and release builds select Xcode 26.6 for its SDK and install the Swift 6.4.2
+toolchain separately. Both workflows verify the compiler version before building.
+The Swift tools version in `Package.swift` requires Swift 6.4.2 or later.
+Pushing a `v*` tag runs tests, builds a universal binary, signs and notarizes
+it, and publishes `swol-macos.zip` to GitHub Releases. The release workflow
+requires the repository secrets `BUILD_CERTIFICATE_BASE64`, `P12_PASSWORD`,
+`APPLE_ID`, `APPLE_TEAM_ID`, and `APPLE_APP_PASSWORD`.
+
+Dependabot checks GitHub Actions weekly and groups action updates into one
+pull request. The Swift package currently has no external dependencies.
 
 ## Run Locally
 
