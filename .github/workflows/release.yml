@@ -82,7 +82,12 @@ jobs:
         run: lipo -create -output swol swol-arm64 swol-x86_64
 
       - name: Verify Universal Binary
-        run: lipo -verify_arch arm64 x86_64 swol
+        run: |
+          architectures=$(lipo -archs swol)
+          echo "Architectures: $architectures"
+          for architecture in arm64 x86_64; do
+            [[ " $architectures " == *" $architecture "* ]]
+          done
 
       - name: Sign Binary
         run: |
